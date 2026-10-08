@@ -1,17 +1,57 @@
 import argparse
 import shlex
 import datetime
-
+import json
 
 
 cur_index = 1
 
 expenses = []
+def load_expenses():
+    global expenses, cur_index
+
+    try:
+        with open("expenses.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        expenses = []
+
+        for item in data:
+            expenses.append((
+                item["id"],
+                datetime.date.fromisoformat(item["date"]),
+                item["description"],
+                item["amount"]
+            ))
+
+        if expenses:
+            cur_index = max(expense[0] for expense in expenses) + 1
+        else:
+            cur_index = 1
+
+    except FileNotFoundError:
+        expenses = []
+        cur_index = 1
+
+def save_expenses():
+    data = []
+
+    for expense_id, date, description, amount in expenses:
+        data.append({
+            "id": expense_id,
+            "date": date.isoformat(),
+            "description": description,
+            "amount": amount
+        })
+
+    with open("expenses.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
 
 def delete_expense(args):
     global expenses
     expenses = list(filter(lambda x:x[0]!= args.id[0], expenses))
+    save_expenses()
 
 
 def summary_expense(args):
@@ -31,6 +71,7 @@ def add_expense(args):
     global cur_index
     expenses.append((cur_index, datetime.date.today(), args.description[0], args.amount[0]))
     cur_index+=1
+    save_expenses()
 
 
 def list_expense(args):
@@ -56,7 +97,7 @@ summary_parser.set_defaults(func = summary_expense)
 delete_parser.add_argument("--id", nargs=1, type=int)
 
 
-
+load_expenses()
 while True:
     command = input("> ")
 
