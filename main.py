@@ -15,18 +15,17 @@ def delete_expense(args):
 
 
 def summary_expense(args):
-    global expenses
-    if not args:
-        s= 0
-        for (cur_index, date, description, amount) in expenses:
-            s+=amount
-        print(f"Total expenses: {s}")
+    if args.month is None:
+        total = sum(expense[3] for expense in expenses)
     else:
-        s = 0
-        for (cur_index, date, description, amount) in expenses:
-            if(date.month == args.month[0]):
-                s+=amount
-        print(f"Total expenses: {s}")
+        month = args.month[0]
+        total = sum(
+            expense[3]
+            for expense in expenses
+            if expense[1].month == month
+        )
+
+    print(f"Total expenses: {total}")
 def add_expense(args):
 
     global cur_index
